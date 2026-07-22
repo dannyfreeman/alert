@@ -200,6 +200,22 @@
 ;; shut up the byte compiler
 (declare-function alert-gntp-notify "alert")
 (declare-function alert-notifications-notify "alert")
+(declare-function x-change-window-property "xfns.c")
+(declare-function x-window-property "xfns.c")
+(declare-function notifications-notify "notifications")
+(declare-function notifications-close-notification "notifications")
+(declare-function do-applescript "nsfns.m")
+
+;; Functions generated dynamically by log4e:deflogger
+(declare-function alert--log-set-level "alert")
+(declare-function alert--log-enable-logging "alert")
+(declare-function alert--log-clear-log "alert")
+(declare-function alert--log-fatal "alert")
+(declare-function alert--log-error "alert")
+(declare-function alert--log-warn "alert")
+(declare-function alert--log-info "alert")
+(declare-function alert--log-debug "alert")
+(declare-function alert--log-trace "alert")
 
 (defgroup alert nil
   "Notification system for Emacs similar to Growl"
@@ -419,7 +435,7 @@ These details are given in a plist which uses various keyword to
 identify the parts of the alert.  Here is a prototypical style
 definition:
 
-\(alert-define-style 'style-name :title \"My Style's title\"
+\(alert-define-style \\='style-name :title \"My Style\\='s title\"
                     :notifier
                     (lambda (info)
                       ;; The message text is :message
@@ -833,7 +849,7 @@ by the `notifications' style.")
                                     :urgency (cdr (assq (plist-get info :severity)
                                                         alert-notifications-priorities))
                                     :actions '("default" "Open corresponding buffer")
-                                    :on-action (lambda (id action)
+                                    :on-action (lambda (_id action)
                                                  (when (string= action "default")
                                                    (switch-to-buffer (plist-get info :buffer)))))))
       (when (plist-get info :id)
@@ -880,16 +896,16 @@ From https://github.com/julienXX/terminal-notifier."
 (defun alert-osx-notifier-notify (info)
   (apply #'call-process "osascript" nil nil nil "-e"
          (list (format "display notification %S with title %S"
-                       (alert-encode-string (plist-get info :message))
-                       (alert-encode-string (plist-get info :title)))))
+                       (plist-get info :message)
+                       (plist-get info :title))))
   (alert-message-notify info))
 
 (when (fboundp 'do-applescript)
   ;; Use built-in AppleScript support when possible.
   (defun alert-osx-notifier-notify (info)
     (do-applescript (format "display notification %S with title %S"
-                            (alert-encode-string (plist-get info :message))
-                            (alert-encode-string (plist-get info :title))))
+                            (plist-get info :message)
+                            (plist-get info :title)))
     (alert-message-notify info)))
 
 (alert-define-style 'osx-notifier :title "Notify using native OSX notification" :notifier #'alert-osx-notifier-notify)
